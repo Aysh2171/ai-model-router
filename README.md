@@ -35,6 +35,7 @@ The Enterprise AI Model Router is a research-oriented architectural framework de
 - **Offline Model Metadata Registry**: Stores rich catalog definitions for 17 foundation models across 10 major AI providers without external API calls.
 - **Machine Learning Complexity Estimation**: Employs a Random Forest classifier to predict request complexity (`Low`, `Medium`, `High`) based on 35+ handcrafted features.
 - **Deterministic Capability Filtering**: Evaluates technical hard constraints objectively across a 5-stage early-exit pipeline.
+- **Organizational Rule Engine**: Enforces business policy rules, data residency limits, vendor blacklists, security compliance, and cost caps.
 - **Provider-Independent Design**: Abstracts away provider-specific SDKs in favor of normalized data representations.
 - **Comprehensive Documentation**: Includes architectural design specifications, feature engineering guides, and benchmark metrics.
 - **Automated Test Suite**: Features deterministic unit, integration, end-to-end, and edge-case tests built using Python's standard library `unittest`.
@@ -57,8 +58,8 @@ Separating the routing process into independent, modular prototypes enables ente
 ## Project Goals
 
 - **Exploring Enterprise AI Routing Architectures**: Study modular, component-driven design patterns for multi-LLM routing.
-- **Building Independent Routing Components**: Develop self-contained prototypes for request analysis, catalog querying, and constraint filtering.
-- **Pre-Selection Feasibility Evaluation**: Determine technical feasibility objectively before applying economic policies or candidate ranking.
+- **Building Independent Routing Components**: Develop self-contained prototypes for request analysis, catalog querying, constraint filtering, and organizational policy enforcement.
+- **Pre-Selection Feasibility & Governance Evaluation**: Determine technical feasibility and business policy compliance objectively before applying candidate ranking.
 - **Maintaining Provider Independence**: Abstract away vendor-specific SDKs using normalized request and capability data structures.
 - **Extensible Router Foundation**: Provide a clean, documented baseline for future policy, rule, and ranking engines.
 
@@ -94,8 +95,10 @@ The AI Model Router pipeline processes incoming requests through sequential, dec
                             │
                             ▼
          ┌─────────────────────────────────────┐
-         │     Rule Engine     (Planned)       │
+         │     Rule Engine     (Prototype 4)   │
          └─────────────────────────────────────┘
+                            │
+                  RuleEvaluationResult
                             │
                             ▼
          ┌─────────────────────────────────────┐
@@ -117,6 +120,7 @@ ai-model-router/
 ├── complexity_predictor/      # Prototype 1: Supervised ML request complexity classifier
 ├── model_registry/            # Prototype 2: Offline foundation model catalog service
 ├── capability_matcher/        # Prototype 3: Deterministic technical feasibility filter
+├── rule_engine/               # Prototype 4: Organizational policy and governance engine
 ├── docs/                      # Architectural design & system specification documents
 └── README.md                  # Root repository overview documentation
 ```
@@ -128,6 +132,7 @@ Each prototype can be executed independently and maintains its own documentation
 - **`complexity_predictor/`**: Contains the Random Forest classification pipeline, 35+ handcrafted feature extractors, dataset generators, model evaluation scripts, interactive CLI, and comprehensive test suite.
 - **`model_registry/`**: Contains the offline catalog metadata schema (`models.json`), data validation models (`ModelInfo`), and multi-criteria querying service (`ModelRegistry`).
 - **`capability_matcher/`**: Contains the 5-stage early-exit deterministic feasibility engine (`CapabilityMatcher`), constraint extractor (`RequirementExtractor`), and candidate result containers (`CapabilityMatchResult`).
+- **`rule_engine/`**: Contains the organizational governance engine (`RuleEngine`), policy context models (`PolicyContext`), and modular rules (`AllowedProvidersRule`, `DataResidencyRule`, `SecurityComplianceRule`, `MaxCostTierRule`).
 - **`docs/`**: Contains detailed architectural specifications, technology stack rationale, and system design documents.
 
 ---
@@ -162,6 +167,15 @@ The Capability Matcher bridges the Complexity Predictor and Model Registry by de
 - **Auditable Candidate Sets**: Returns clean `CandidateModel` objects (with surplus token headroom metrics) and `ExcludedModel` objects (with explicit rejection telemetry).
 - **Strict Feasibility Scope**: Evaluates hard technical feasibility objectively without subjective cost scoring or model ranking.
 
+### Prototype 4 — Rule Engine
+
+The Rule Engine evaluates technically feasible candidate models against organizational, compliance, security, and governance policies.
+
+- **Policy Context Construction**: Accepts tenant tier metadata, allowed/disallowed providers, data residency regions, security compliance tags, and max cost tier caps.
+- **Modular Policy Rules**: Evaluates `AllowedProvidersRule`, `DisallowedProvidersRule`, `DataResidencyRule`, `SecurityComplianceRule`, `TenantAccessTierRule`, and `MaxCostTierRule`.
+- **Full Violation Telemetry**: Collects all rule violations per candidate model without stopping at the first failure.
+- **Auditable Candidate Filtering**: Outputs allowed candidate sets (`allowed_candidates`) and detailed policy exclusion traces (`policy_excluded_candidates`).
+
 ---
 
 ## Current Status
@@ -171,7 +185,7 @@ The Capability Matcher bridges the Complexity Predictor and Model Registry by de
 | **Complexity Predictor** | **Complete** | Request complexity estimation |
 | **Model Registry** | **Complete** | Offline metadata catalog |
 | **Capability Matcher** | **Complete** | Technical feasibility filtering |
-| **Rule Engine** | *Planned* | Enterprise policy enforcement |
+| **Rule Engine** | **Complete** | Enterprise policy enforcement |
 | **Ranking Engine** | *Planned* | Candidate scoring and optimization |
 
 ---

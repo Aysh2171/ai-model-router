@@ -1,0 +1,13 @@
+{
+    "tenant_id": "default_tenant",
+    "tenant_tier": "standard",
+    "environment": "production",
+    "allowed_providers": null,
+    "disallowed_providers": null,
+    "data_residency_region": null,
+    "required_compliance_tags": [],
+    "max_cost_tier": null,
+    "allowed_model_statuses": [
+        "available"
+    ]
+}
