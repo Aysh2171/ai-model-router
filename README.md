@@ -102,7 +102,21 @@ The AI Model Router pipeline processes incoming requests through sequential, dec
                             │
                             ▼
          ┌─────────────────────────────────────┐
-         │    Ranking Engine   (Planned)       │
+         │    Ranking Engine   (Prototype 5)   │
+         └─────────────────────────────────────┘
+                            │
+                      RankingResult
+                            │
+                            ▼
+         ┌─────────────────────────────────────┐
+         │    Policy Engine    (Prototype 6)   │
+         └─────────────────────────────────────┘
+                            │
+                     PolicyDecision
+                            │
+                            ▼
+         ┌─────────────────────────────────────┐
+         │   Gateway Router    (Planned)       │
          └─────────────────────────────────────┘
                             │
                             ▼
@@ -122,6 +136,7 @@ ai-model-router/
 ├── capability_matcher/        # Prototype 3: Deterministic technical feasibility filter
 ├── rule_engine/               # Prototype 4: Organizational policy and governance engine
 ├── ranking_engine/            # Prototype 5: Transparent preference scoring and ranking engine
+├── policy_engine/             # Prototype 6: Runtime state governance and ordered fallback engine
 ├── docs/                      # Architectural design & system specification documents
 └── README.md                  # Root repository overview documentation
 ```
@@ -135,6 +150,7 @@ Each prototype can be executed independently and maintains its own documentation
 - **`capability_matcher/`**: Contains the 5-stage early-exit deterministic feasibility engine (`CapabilityMatcher`), constraint extractor (`RequirementExtractor`), and candidate result containers (`CapabilityMatchResult`).
 - **`rule_engine/`**: Contains the organizational governance engine (`RuleEngine`), policy context models (`PolicyContext`), and modular rules (`AllowedProvidersRule`, `DataResidencyRule`, `SecurityComplianceRule`, `MaxCostTierRule`).
 - **`ranking_engine/`**: Contains the preference scoring engine (`RankingEngine`), criteria algorithms (`ComponentScorer`), weight configuration (`RankingConfig`), and deterministic tie-breaking logic.
+- **`policy_engine/`**: Contains the runtime governance decision engine (`PolicyEngine`), in-memory consumption tracker (`UsageState`), policy rules (`BudgetPolicy`, `QuotaPolicy`, `RateLimitPolicy`), and ordered fallback dispatcher.
 - **`docs/`**: Contains detailed architectural specifications, technology stack rationale, and system design documents.
 
 ---
@@ -187,6 +203,15 @@ The Ranking Engine scores and orders policy-approved candidate models based on c
 - **Scoring Telemetry**: Generates concise scoring explanations and component breakdowns per candidate.
 - **Optimal Selection**: Identifies top-ranked candidate model (`selected_model`) ready for gateway dispatch.
 
+### Prototype 6 — Policy Engine
+
+The Policy Engine enforces runtime operational governance and ordered fallback dispatch across pre-ranked candidate models.
+
+- **Runtime Operational Policies**: Evaluates `BudgetPolicy`, `QuotaPolicy`, and `RateLimitPolicy` against in-memory tenant consumption state (`UsageState`).
+- **Ordered Fallback Dispatch**: If a top-ranked candidate fails a runtime policy, evaluates subsequent candidates in strict rank order without re-ranking ($A \rightarrow B \rightarrow C$).
+- **Structured Dispatch Decisions**: Returns explicit decision states (`APPROVED`, `APPROVED_WITH_FALLBACK`, `REJECTED`, `NO_CANDIDATE`) and failure reasons.
+- **Audit Telemetry**: Captures candidate-level evaluations, fallback depth, and snapshot usage state.
+
 ---
 
 ## Current Status
@@ -198,7 +223,8 @@ The Ranking Engine scores and orders policy-approved candidate models based on c
 | **Capability Matcher** | **Complete** | Technical feasibility filtering |
 | **Rule Engine** | **Complete** | Enterprise policy enforcement |
 | **Ranking Engine** | **Complete** | Candidate scoring and optimization |
-
+| **Policy Engine** | **Complete** | Runtime governance and fallback dispatch |
+| **Gateway Router** | *Planned* | Request routing and execution gateway |
 ---
 
 ## Technology Stack

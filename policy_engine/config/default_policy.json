@@ -1,0 +1,14 @@
+{
+    "tenant_id": "default_tenant",
+    "environment": "production",
+    "budget_limit": null,
+    "requested_tokens": 1000,
+    "max_tokens_per_request": null,
+    "daily_request_limit": null,
+    "daily_token_limit": null,
+    "monthly_request_limit": null,
+    "monthly_token_limit": null,
+    "max_requests_per_window": null,
+    "fallback_enabled": true,
+    "max_fallback_attempts": 3
+}
