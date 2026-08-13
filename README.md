@@ -121,6 +121,7 @@ ai-model-router/
 ├── model_registry/            # Prototype 2: Offline foundation model catalog service
 ├── capability_matcher/        # Prototype 3: Deterministic technical feasibility filter
 ├── rule_engine/               # Prototype 4: Organizational policy and governance engine
+├── ranking_engine/            # Prototype 5: Transparent preference scoring and ranking engine
 ├── docs/                      # Architectural design & system specification documents
 └── README.md                  # Root repository overview documentation
 ```
@@ -133,6 +134,7 @@ Each prototype can be executed independently and maintains its own documentation
 - **`model_registry/`**: Contains the offline catalog metadata schema (`models.json`), data validation models (`ModelInfo`), and multi-criteria querying service (`ModelRegistry`).
 - **`capability_matcher/`**: Contains the 5-stage early-exit deterministic feasibility engine (`CapabilityMatcher`), constraint extractor (`RequirementExtractor`), and candidate result containers (`CapabilityMatchResult`).
 - **`rule_engine/`**: Contains the organizational governance engine (`RuleEngine`), policy context models (`PolicyContext`), and modular rules (`AllowedProvidersRule`, `DataResidencyRule`, `SecurityComplianceRule`, `MaxCostTierRule`).
+- **`ranking_engine/`**: Contains the preference scoring engine (`RankingEngine`), criteria algorithms (`ComponentScorer`), weight configuration (`RankingConfig`), and deterministic tie-breaking logic.
 - **`docs/`**: Contains detailed architectural specifications, technology stack rationale, and system design documents.
 
 ---
@@ -176,6 +178,15 @@ The Rule Engine evaluates technically feasible candidate models against organiza
 - **Full Violation Telemetry**: Collects all rule violations per candidate model without stopping at the first failure.
 - **Auditable Candidate Filtering**: Outputs allowed candidate sets (`allowed_candidates`) and detailed policy exclusion traces (`policy_excluded_candidates`).
 
+### Prototype 5 — Ranking Engine
+
+The Ranking Engine scores and orders policy-approved candidate models based on configurable preference weights.
+
+- **Configurable Preference Weights**: Balances Cost, Latency, Complexity Suitability, and Context Headroom criteria weights.
+- **Deterministic Tie-Breaking Protocol**: Resolves identical scores using strict secondary headroom and tertiary model ID alphabetical ordering.
+- **Scoring Telemetry**: Generates concise scoring explanations and component breakdowns per candidate.
+- **Optimal Selection**: Identifies top-ranked candidate model (`selected_model`) ready for gateway dispatch.
+
 ---
 
 ## Current Status
@@ -186,7 +197,7 @@ The Rule Engine evaluates technically feasible candidate models against organiza
 | **Model Registry** | **Complete** | Offline metadata catalog |
 | **Capability Matcher** | **Complete** | Technical feasibility filtering |
 | **Rule Engine** | **Complete** | Enterprise policy enforcement |
-| **Ranking Engine** | *Planned* | Candidate scoring and optimization |
+| **Ranking Engine** | **Complete** | Candidate scoring and optimization |
 
 ---
 

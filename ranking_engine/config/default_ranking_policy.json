@@ -1,0 +1,8 @@
+{
+    "cost_weight": 0.30,
+    "latency_weight": 0.25,
+    "suitability_weight": 0.25,
+    "headroom_weight": 0.20,
+    "prefer_lower_cost": true,
+    "prefer_lower_latency": true
+}
