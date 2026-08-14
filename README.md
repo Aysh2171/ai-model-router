@@ -88,7 +88,6 @@ The **AI Model Router** is a modular, research-oriented framework for evaluating
 - [Automated Testing & Verification](#automated-testing--verification)
 - [Supervisor Demonstration Quick Start](#supervisor-demonstration-quick-start)
 - [Architectural Limitations](#architectural-limitations)
-- [License](#license)
 
 ---
 
@@ -739,9 +738,3 @@ When presenting this project to a supervisor or evaluator, follow this concise w
 2. **Static ML Model**: Module 8 calculates historical telemetry analytics but does not automatically trigger continuous online retraining of Module 1's Random Forest classifier.
 3. **In-Process Communication**: Module-to-module communication occurs via in-process Python method calls rather than an asynchronous distributed message broker (e.g. Apache Kafka or RabbitMQ).
 4. **Default Persistence**: The default demonstration environment uses an in-memory SQLite database (`sqlite:///:memory:`). Persistent storage can be enabled by configuring a persistent database URL.
-
----
-
-## License
-
-This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
