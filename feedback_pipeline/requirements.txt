@@ -1,0 +1,10 @@
+# Feedback Pipeline Dependencies
+# Standard Library: dataclasses, enum, json, pathlib, typing, unittest, datetime, uuid
+# Persistence: SQLAlchemy ORM
+# Web Transport (Optional): FastAPI, Uvicorn, Pydantic, HTTPX
+
+sqlalchemy>=2.0.0
+fastapi>=0.100.0
+uvicorn>=0.20.0
+pydantic>=2.0.0
+httpx>=0.24.0

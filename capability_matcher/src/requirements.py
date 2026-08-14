@@ -27,6 +27,39 @@ class MatchRequirements:
         return data
 
 
+TASK_CATEGORY_ALIAS_MAP: Dict[str, Set[str]] = {
+    "Analysis & Review": {"Reasoning"},
+    "Data Processing": {"Data Extraction"},
+    "Document Processing": {"Document Analysis"},
+    "System Architecture": {"Software Architecture"},
+    "Multimodal": {"Vision Analysis"},
+    "Vision": {"Vision Analysis"},
+    "Math": {"Mathematical Reasoning"},
+    "Code Reviewing": {"Code Review"},
+
+    "General Prompting": set(),
+    "General Question Answering": set(),
+    "General": set(),
+
+    "Code Review": {"Code Review"},
+    "Creative Writing": {"Creative Writing"},
+    "Data Extraction": {"Data Extraction"},
+    "Debugging": {"Debugging"},
+    "Document Analysis": {"Document Analysis"},
+    "Function Calling": {"Function Calling"},
+    "Mathematical Reasoning": {"Mathematical Reasoning"},
+    "Planning": {"Planning"},
+    "Programming": {"Programming"},
+    "Reasoning": {"Reasoning"},
+    "Software Architecture": {"Software Architecture"},
+    "Summarization": {"Summarization"},
+    "System Design": {"System Design"},
+    "Tool Use": {"Tool Use"},
+    "Translation": {"Translation"},
+    "Vision Analysis": {"Vision Analysis"},
+}
+
+
 class RequirementExtractor:
     """Consumes a normalized AI request representation and derives technical matching constraints for the Capability Matcher."""
 
@@ -44,11 +77,15 @@ class RequirementExtractor:
         required_use_cases: Set[str] = set()
 
         # 1. Extract Task Category -> Use Case Mapping
-        metadata = request_payload.get("metadata", {})
+        raw_meta = request_payload.get("metadata")
+        metadata = raw_meta if isinstance(raw_meta, dict) else {}
         task_cat = metadata.get("task_category") or request_payload.get("task_category")
         if task_cat and isinstance(task_cat, str):
             category = task_cat.strip()
-            if category not in ["General Question Answering", "General Prompting"]:
+            if category in TASK_CATEGORY_ALIAS_MAP:
+                required_use_cases.update(TASK_CATEGORY_ALIAS_MAP[category])
+            else:
+                # Unknown / unsupported categories remain strict requirements
                 required_use_cases.add(category)
 
         # 2. Extract Attachment Requirements & Modalities

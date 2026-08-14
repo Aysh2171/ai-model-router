@@ -1,0 +1,7 @@
+# Gateway Router Dependencies
+# Core Gateway Router and Provider Adapters use the Python Standard Library only (dataclasses, enum, json, pathlib, typing, unittest, time, uuid).
+# Optional HTTP API layer utilizes FastAPI and Uvicorn for lightweight REST and SSE transport.
+
+fastapi>=0.100.0
+uvicorn>=0.20.0
+httpx>=0.24.0

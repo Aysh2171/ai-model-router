@@ -34,7 +34,7 @@ class TestRequestAnalyzer(unittest.TestCase):
             SIMPLE_TEXT_REQUEST,
             CODE_REQUEST,
             DOCUMENT_REQUEST,
-            {}  # Completely empty dictionary fallback
+            {"prompt": ""}  # Valid empty string prompt
         ]
         for payload in test_payloads:
             req = self.analyzer.analyze(payload)
@@ -58,10 +58,10 @@ class TestRequestAnalyzer(unittest.TestCase):
         doc_req = self.analyzer.analyze(DOCUMENT_REQUEST)
         self.assertEqual(len(doc_req.attachments), 1)
 
-    def test_invalid_payload_types(self):
-        """Verify request analyzer extracts non-string prompt raw values without crashing."""
-        req = self.analyzer.analyze(NON_STRING_PROMPT_REQUEST)
-        self.assertEqual(req.prompt, 12345)
+    def test_invalid_payload_types_raises_value_error(self):
+        """Verify request analyzer rejects non-string prompt with ValueError."""
+        with self.assertRaises(ValueError):
+            self.analyzer.analyze(NON_STRING_PROMPT_REQUEST)
 
 
 if __name__ == "__main__":

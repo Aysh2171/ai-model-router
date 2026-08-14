@@ -1,0 +1,7 @@
+{
+    "database_url": "sqlite:///:memory:",
+    "store_full_prompt": false,
+    "max_prompt_summary_length": 200,
+    "enable_feedback_collection": true,
+    "analytics_cache_ttl_seconds": 60
+}

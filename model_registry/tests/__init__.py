@@ -1,0 +1,3 @@
+"""
+Model Registry Test Package.
+"""
