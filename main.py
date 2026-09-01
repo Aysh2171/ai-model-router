@@ -69,9 +69,9 @@ def print_banner() -> None:
     print("                      AI MODEL ROUTER FRAMEWORK                       ")
     print("                      Interactive System Console                      ")
     print("=" * 78)
-    print("  Execution Environment : Local Prototype")
-    print("  Provider Execution    : MockProviderAdapter (Deterministic Local Simulation)")
-    print("  External Calls        : ZERO Commercial API Calls | ZERO Cloud Spending")
+    print("  Execution Environment : Multi-Provider Router (Live & Fallback)")
+    print("  Provider Execution    : Real Provider Adapters + Availability Fallback")
+    print("  Server Security       : Real Keys Server-Side Only | Zero Secret Leakage")
     print("=" * 78)
 
 
@@ -157,8 +157,8 @@ def print_gateway_response(resp: GatewayResponse) -> None:
     print(f"  Status            : {status_str}")
     print(f"  Decision State    : {resp.decision_state or 'N/A'}")
     print(f"  Selected Model    : {resp.model_id or 'None'}")
-    print(f"  Provider          : {resp.provider or 'None'}")
-    print(f"  Execution Mode    : {resp.execution_mode.upper()} (Local Simulation)")
+    mode_label = "Real External API Call" if resp.execution_mode == "live" else "Deterministic Local Simulation"
+    print(f"  Execution Mode    : {resp.execution_mode.upper()} ({mode_label})")
     print(f"  Retry Count       : {resp.retry_count}")
     print(f"  Fallback Used     : {resp.fallback_used}")
     print(f"  Latency           : {resp.latency_ms:.2f} ms")

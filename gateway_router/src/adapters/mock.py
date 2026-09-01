@@ -35,6 +35,11 @@ class MockProviderAdapter(BaseProviderAdapter):
     def provider(self) -> str:
         return self._provider
 
+    @property
+    def execution_mode(self) -> str:
+        return ExecutionMode.MOCK.value
+
+
     def _get_request_key(self, request: GatewayRequest) -> str:
         """Resolve request-specific state key, generating and binding a unique key if empty."""
         if request and request.request_id and request.request_id.strip():

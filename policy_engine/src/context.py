@@ -37,9 +37,10 @@ class PolicyContext:
     # Rate Limiting Limits
     max_requests_per_window: Optional[int] = None
 
-    # Fallback Governance
+    # Fallback & Availability Governance
     fallback_enabled: bool = True
-    max_fallback_attempts: int = 3
+    max_fallback_attempts: int = 10
+    require_available_credentials: bool = False
 
     def __post_init__(self) -> None:
         """Validate numeric limits upon instantiation."""

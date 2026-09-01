@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Model Router — Intelligent Multi-Provider Chat</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #0a0d14;
+      --bg-surface: rgba(18, 24, 38, 0.75);
+      --bg-card: rgba(25, 33, 52, 0.85);
+      --border-color: rgba(255, 255, 255, 0.08);
+      --border-glow: rgba(99, 102, 241, 0.25);
+      --accent: #6366f1;
+      --accent-hover: #4f46e5;
+      --accent-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%);
+      --emerald: #10b981;
+      --amber: #f59e0b;
+      --rose: #f43f5e;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --font-sans: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--bg-primary);
+      color: var(--text-main);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background-image: 
+        radial-gradient(circle at 15% 15%, rgba(99, 102, 241, 0.12) 0%, transparent 40%),
+        radial-gradient(circle at 85% 85%, rgba(217, 70, 239, 0.08) 0%, transparent 40%);
+    }
+
+    header {
+      padding: 1rem 2rem;
+      background: var(--bg-surface);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 10;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .brand-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: var(--accent-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      color: white;
+      font-size: 1.1rem;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+    }
+
+    .brand h1 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
+    .brand p {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .key-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      padding: 0.35rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      color: #34d399;
+      font-family: var(--font-mono);
+    }
+
+    .key-badge span.dot {
+      width: 6px;
+      height: 6px;
+      background: #10b981;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #10b981;
+    }
+
+    .main-layout {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* Chat Area */
+    .chat-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      position: relative;
+    }
+
+    .messages-pane {
+      flex: 1;
+      overflow-y: auto;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .message-row {
+      display: flex;
+      flex-direction: column;
+      max-width: 80%;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .message-row.user {
+      align-self: flex-end;
+    }
+
+    .message-row.assistant {
+      align-self: flex-start;
+      max-width: 85%;
+    }
+
+    .message-bubble {
+      padding: 1rem 1.25rem;
+      border-radius: 16px;
+      line-height: 1.6;
+      font-size: 0.95rem;
+      position: relative;
+    }
+
+    .user .message-bubble {
+      background: var(--accent-gradient);
+      color: white;
+      border-bottom-right-radius: 4px;
+      box-shadow: 0 4px 16px rgba(99, 102, 241, 0.25);
+    }
+
+    .assistant .message-bubble {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-bottom-left-radius: 4px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    }
+
+    .assistant .router-telemetry-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+      padding: 0.35rem 0.75rem;
+      border-radius: 8px;
+      background: rgba(99, 102, 241, 0.12);
+      border: 1px solid rgba(99, 102, 241, 0.25);
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      color: #a5b4fc;
+    }
+
+    .assistant .router-telemetry-badge .provider-pill {
+      font-weight: 600;
+      color: white;
+      background: rgba(99, 102, 241, 0.4);
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+    }
+
+    .assistant .routing-reason {
+      margin-top: 0.75rem;
+      padding: 0.6rem 0.85rem;
+      background: rgba(0, 0, 0, 0.3);
+      border-left: 3px solid var(--accent);
+      border-radius: 4px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-family: var(--font-sans);
+    }
+
+    .chat-input-area {
+      padding: 1.25rem 2rem;
+      background: var(--bg-surface);
+      backdrop-filter: blur(16px);
+      border-top: 1px solid var(--border-color);
+    }
+
+    .input-wrapper {
+      display: flex;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 0.5rem 0.75rem;
+      align-items: center;
+      gap: 0.75rem;
+      transition: all 0.2s;
+    }
+
+    .input-wrapper:focus-within {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px var(--border-glow);
+    }
+
+    .chat-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: white;
+      font-family: var(--font-sans);
+      font-size: 0.95rem;
+      padding: 0.5rem;
+      outline: none;
+      resize: none;
+      height: 24px;
+      max-height: 120px;
+    }
+
+    .chat-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .send-btn {
+      background: var(--accent-gradient);
+      border: none;
+      color: white;
+      padding: 0.6rem 1.2rem;
+      border-radius: 10px;
+      font-family: var(--font-sans);
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+
+    .send-btn:hover {
+      opacity: 0.95;
+    }
+
+    .send-btn:active {
+      transform: scale(0.98);
+    }
+
+    .send-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Sidebar: Telemetry & Model Catalogue */
+    .sidebar {
+      width: 360px;
+      background: var(--bg-surface);
+      backdrop-filter: blur(16px);
+      border-left: 1px solid var(--border-color);
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      overflow-y: auto;
+    }
+
+    .sidebar-section {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 1.25rem;
+    }
+
+    .sidebar-section h2 {
+      font-size: 0.9rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 0.85rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .provider-status-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+
+    .provider-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.5rem 0.75rem;
+      background: rgba(0, 0, 0, 0.25);
+      border-radius: 8px;
+      font-size: 0.82rem;
+    }
+
+    .provider-name {
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .status-tag {
+      font-size: 0.7rem;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-weight: 600;
+      font-family: var(--font-mono);
+    }
+
+    .status-tag.active {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .status-tag.fallback {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .pipeline-diagram {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+    }
+
+    .pipeline-step {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.4rem 0.6rem;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 6px;
+      border-left: 2px solid var(--accent);
+    }
+
+    .pipeline-step .num {
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    pre code {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      white-space: pre-wrap;
+    }
+
+    .loading-pulse {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: pulse 1s infinite alternate;
+    }
+
+    @keyframes pulse {
+      from { transform: scale(0.8); opacity: 0.5; }
+      to { transform: scale(1.2); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <div class="brand-icon">⚡</div>
+      <div>
+        <h1>AI Model Router</h1>
+        <p>Dynamic Multi-Provider Dispatch & Availability Fallback</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <div class="key-badge">
+        <span class="dot"></span>
+        <span>Router API Key: Verified</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="main-layout">
+    <!-- Chat Interface -->
+    <div class="chat-container">
+      <div class="messages-pane" id="messagesPane">
+        <div class="message-row assistant">
+          <div class="message-bubble">
+            <div class="router-telemetry-badge">
+              <span>SYSTEM READY</span>
+              <span class="provider-pill">Multi-Provider Router</span>
+            </div>
+            <p>Welcome! Type any prompt. The router will categorize your task, rank the best candidate models, check active credentials, and securely dispatch to the optimal available provider.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="chat-input-area">
+        <form id="chatForm" onsubmit="sendMessage(event)">
+          <div class="input-wrapper">
+            <input type="text" id="userInput" class="chat-input" placeholder="Ask anything (e.g. 'Write bubble sort in Python' or 'Explain photosynthesis')..." autocomplete="off" />
+            <button type="submit" id="sendBtn" class="send-btn">
+              <span>Send</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Telemetry Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-section">
+        <h2>Active Providers</h2>
+        <div class="provider-status-list" id="providerList">
+          <div class="provider-item">
+            <span class="provider-name">Google Gemini</span>
+            <span class="status-tag active">ACTIVE</span>
+          </div>
+          <div class="provider-item">
+            <span class="provider-name">DeepSeek</span>
+            <span class="status-tag active">ACTIVE</span>
+          </div>
+          <div class="provider-item">
+            <span class="provider-name">Groq LPU</span>
+            <span class="status-tag active">ACTIVE</span>
+          </div>
+          <div class="provider-item">
+            <span class="provider-name">OpenRouter Free</span>
+            <span class="status-tag active">ACTIVE</span>
+          </div>
+          <div class="provider-item">
+            <span class="provider-name">NVIDIA NIM</span>
+            <span class="status-tag active">ACTIVE</span>
+          </div>
+          <div class="provider-item">
+            <span class="provider-name">Anthropic Claude</span>
+            <span class="status-tag fallback">FALLBACK</span>
+          </div>
+          <div class="provider-item">
+            <span class="provider-name">OpenAI GPT</span>
+            <span class="status-tag fallback">FALLBACK</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <h2>7-Stage Pipeline</h2>
+        <div class="pipeline-diagram">
+          <div class="pipeline-step"><span class="num">M1</span> Task Complexity Prediction</div>
+          <div class="pipeline-step"><span class="num">M2</span> Model Catalog Introspection</div>
+          <div class="pipeline-step"><span class="num">M3</span> Capability Requirement Matching</div>
+          <div class="pipeline-step"><span class="num">M4</span> Governance Rule Filtering</div>
+          <div class="pipeline-step"><span class="num">M5</span> Multi-Criteria Utility Ranking</div>
+          <div class="pipeline-step"><span class="num">M6</span> Availability-Aware Fallback</div>
+          <div class="pipeline-step"><span class="num">M7</span> Real Gateway Dispatch</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const messagesPane = document.getElementById('messagesPane');
+    const userInput = document.getElementById('userInput');
+    const sendBtn = document.getElementById('sendBtn');
+
+    async function sendMessage(e) {
+      e.preventDefault();
+      const message = userInput.value.trim();
+      if (!message) return;
+
+      // Append user bubble
+      appendUserMessage(message);
+      userInput.value = '';
+      sendBtn.disabled = true;
+
+      // Append loading assistant bubble
+      const loadingId = 'loading-' + Date.now();
+      appendLoadingBubble(loadingId);
+
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Router-API-Key': 'client-session'
+          },
+          body: JSON.stringify({ message: message })
+        });
+
+        const data = await res.json();
+        removeElement(loadingId);
+
+        if (res.ok && data.status === 'SUCCESS') {
+          appendAssistantMessage(data);
+        } else {
+          appendErrorMessage(data.error_message || data.detail || 'Execution failed.');
+        }
+      } catch (err) {
+        removeElement(loadingId);
+        appendErrorMessage('Network connection error: ' + err.message);
+      } finally {
+        sendBtn.disabled = false;
+        userInput.focus();
+      }
+    }
+
+    function appendUserMessage(text) {
+      const row = document.createElement('div');
+      row.className = 'message-row user';
+      row.innerHTML = `<div class="message-bubble"><p>${escapeHtml(text)}</p></div>`;
+      messagesPane.appendChild(row);
+      messagesPane.scrollTop = messagesPane.scrollHeight;
+    }
+
+    function appendLoadingBubble(id) {
+      const row = document.createElement('div');
+      row.className = 'message-row assistant';
+      row.id = id;
+      row.innerHTML = `
+        <div class="message-bubble">
+          <div class="router-telemetry-badge">
+            <span class="loading-pulse"></span>
+            <span>Analyzing Task & Routing to Best Available Provider...</span>
+          </div>
+        </div>`;
+      messagesPane.appendChild(row);
+      messagesPane.scrollTop = messagesPane.scrollHeight;
+    }
+
+    function appendAssistantMessage(data) {
+      const row = document.createElement('div');
+      row.className = 'message-row assistant';
+      
+      const provider = data.selected_provider || 'Router';
+      const model = data.selected_model || 'Auto';
+      const latency = data.latency_ms ? `${data.latency_ms.toFixed(0)} ms` : 'N/A';
+      const mode = data.execution_mode ? data.execution_mode.toUpperCase() : 'LIVE';
+      const reason = data.routing_explanation || '';
+
+      row.innerHTML = `
+        <div class="message-bubble">
+          <div class="router-telemetry-badge">
+            <span class="provider-pill">${escapeHtml(provider)}</span>
+            <span>Model: ${escapeHtml(model)}</span>
+            <span>•</span>
+            <span>Latency: ${latency}</span>
+            <span>•</span>
+            <span style="color: #34d399;">${mode}</span>
+          </div>
+          <p style="white-space: pre-wrap;">${escapeHtml(data.response)}</p>
+          ${reason ? `<div class="routing-reason"><strong>Routing Rationale:</strong> ${escapeHtml(reason)}</div>` : ''}
+        </div>`;
+      messagesPane.appendChild(row);
+      messagesPane.scrollTop = messagesPane.scrollHeight;
+    }
+
+    function appendErrorMessage(text) {
+      const row = document.createElement('div');
+      row.className = 'message-row assistant';
+      row.innerHTML = `
+        <div class="message-bubble" style="border-left: 3px solid var(--rose);">
+          <div class="router-telemetry-badge" style="background: rgba(244, 63, 94, 0.1); border-color: rgba(244, 63, 94, 0.3); color: #fda4af;">
+            <span>ROUTER ERROR</span>
+          </div>
+          <p style="color: #fca5a5;">${escapeHtml(text)}</p>
+        </div>`;
+      messagesPane.appendChild(row);
+      messagesPane.scrollTop = messagesPane.scrollHeight;
+    }
+
+    function removeElement(id) {
+      const el = document.getElementById(id);
+      if (el) el.remove();
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+  </script>
+</body>
+</html>

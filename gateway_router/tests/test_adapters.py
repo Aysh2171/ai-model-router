@@ -130,6 +130,18 @@ class TestProviderAdapters(unittest.TestCase):
         self.assertFalse(registry.has_provider("UnknownProvider"))
         self.assertIsNone(registry.get("UnknownProvider"))
 
+    def test_adapter_registry_create_default_contains_nvidia(self):
+        """Verify default AdapterRegistry contains live NvidiaProviderAdapter for NVIDIA."""
+        from gateway_router.src.adapters.nvidia import NvidiaProviderAdapter
+        registry = AdapterRegistry.create_default()
+        self.assertTrue(registry.has_provider("NVIDIA"))
+        adapter = registry.get("NVIDIA")
+        self.assertIsInstance(adapter, NvidiaProviderAdapter)
+        self.assertEqual(adapter.execution_mode, "live")
+        self.assertEqual(adapter.name, "nvidia_nvidia_adapter")
+
 
 if __name__ == "__main__":
     unittest.main()
+
+

@@ -155,6 +155,8 @@ class GatewayRouter:
                 metadata={"rank_position": selected_model.rank_position}
             )
 
+        adapter_mode = getattr(adapter, "execution_mode", ExecutionMode.MOCK.value)
+
         # 4. Bounded Retry Execution Loop for the SAME selected model
         retry_count = 0
         max_retries = self.config.max_retries
@@ -163,6 +165,7 @@ class GatewayRouter:
             try:
                 exec_result = adapter.execute(request, selected_model)
                 elapsed_ms = (time.perf_counter() - start_time) * 1000.0
+                exec_mode = exec_result.execution_mode if exec_result and exec_result.execution_mode else adapter_mode
 
                 return GatewayResponse(
                     request_id=req_id,
@@ -171,7 +174,7 @@ class GatewayRouter:
                     model_id=model_id,
                     provider=provider_name,
                     content=exec_result.content,
-                    execution_mode=ExecutionMode.MOCK.value,
+                    execution_mode=exec_mode,
                     latency_ms=exec_result.latency_ms if exec_result.latency_ms > 0 else elapsed_ms,
                     retry_count=retry_count,
                     fallback_used=fallback_used,
@@ -204,7 +207,7 @@ class GatewayRouter:
                         decision_state=decision_state_val,
                         model_id=model_id,
                         provider=provider_name,
-                        execution_mode=ExecutionMode.MOCK.value,
+                        execution_mode=adapter_mode,
                         latency_ms=elapsed_ms,
                         retry_count=retry_count,
                         fallback_used=fallback_used,
@@ -221,7 +224,7 @@ class GatewayRouter:
                     decision_state=decision_state_val,
                     model_id=model_id,
                     provider=provider_name,
-                    execution_mode=ExecutionMode.MOCK.value,
+                    execution_mode=adapter_mode,
                     latency_ms=elapsed_ms,
                     retry_count=retry_count,
                     fallback_used=fallback_used,
@@ -238,7 +241,7 @@ class GatewayRouter:
                     decision_state=decision_state_val,
                     model_id=model_id,
                     provider=provider_name,
-                    execution_mode=ExecutionMode.MOCK.value,
+                    execution_mode=adapter_mode,
                     latency_ms=elapsed_ms,
                     retry_count=retry_count,
                     fallback_used=fallback_used,
@@ -250,8 +253,10 @@ class GatewayRouter:
         return GatewayResponse(
             request_id=req_id,
             status=ExecutionStatus.FAILED,
+            execution_mode=adapter_mode,
             error_message="Execution loop terminated unexpectedly."
         )
+
 
     def execute_stream(self, request: GatewayRequest) -> Generator[StreamChunk, None, None]:
         """
@@ -314,6 +319,8 @@ class GatewayRouter:
             )
             return
 
+        adapter_mode = getattr(adapter, "execution_mode", ExecutionMode.MOCK.value)
+
         # 4. Stream execution chunks
         try:
             for chunk in adapter.execute_stream(request, selected_model):
@@ -327,5 +334,6 @@ class GatewayRouter:
                 model_id=model_id,
                 provider=provider_name,
                 is_final=True,
-                execution_mode=ExecutionMode.MOCK.value
+                execution_mode=adapter_mode
             )
+

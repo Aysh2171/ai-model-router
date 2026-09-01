@@ -53,6 +53,7 @@ class PipelineRouter:
             self.predictor = ComplexityPredictorModel()
 
         self.registry = registry or ModelRegistry()
+        self.model_registry = self.registry
         self.matcher = matcher or CapabilityMatcher(registry=self.registry)
         self.rule_engine = rule_engine or RuleEngine()
         self.ranking_engine = ranking_engine or RankingEngine()
@@ -107,6 +108,13 @@ class PipelineRouter:
         )
 
         # 5. Module 6 — Runtime Policy Enforcement & Bounded Fallback
+        if runtime_policy_context is None:
+            runtime_policy_context = RuntimePolicyContext(
+                require_available_credentials=False,
+                fallback_enabled=True,
+                max_fallback_attempts=10
+            )
+
         policy_decision = self.policy_engine.evaluate(
             ranking_result=ranking_result,
             context=runtime_policy_context,

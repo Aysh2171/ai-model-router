@@ -13,6 +13,8 @@ from ranking_engine.src import RankedModel
 class ExecutionMode(str, Enum):
     """Execution mode indicator for gateway dispatches."""
     MOCK = "mock"
+    LIVE = "live"
+
 
 
 class ExecutionStatus(str, Enum):

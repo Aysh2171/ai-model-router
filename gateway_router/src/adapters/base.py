@@ -24,6 +24,22 @@ class BaseProviderAdapter(ABC):
         """Canonical provider name handled by this adapter (e.g. 'OpenAI', 'Anthropic')."""
         pass
 
+    @property
+    def execution_mode(self) -> str:
+        """Execution mode provided by this adapter (e.g. 'mock' or 'live'). Defaults to 'mock'."""
+        return "mock"
+
+    @property
+    def is_configured(self) -> bool:
+        """Whether this provider adapter has required credentials configured."""
+        return True
+
+    @property
+    def is_available(self) -> bool:
+        """Whether this provider adapter is currently enabled and available."""
+        return self.is_configured
+
+
     @abstractmethod
     def execute(self, request: GatewayRequest, model: RankedModel) -> GatewayExecutionResult:
         """
