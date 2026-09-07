@@ -8,6 +8,8 @@ import os
 import json
 from pathlib import Path
 from typing import Dict, Any, Optional, List
+from dotenv import load_dotenv
+load_dotenv()
 from fastapi import FastAPI, HTTPException, Request, Depends, Header
 from fastapi.responses import StreamingResponse, JSONResponse, HTMLResponse
 from pydantic import BaseModel, Field

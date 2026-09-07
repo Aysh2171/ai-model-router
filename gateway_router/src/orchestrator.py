@@ -107,7 +107,7 @@ class PipelineRouter:
             config=ranking_config
         )
 
-        # 5. Module 6 — Runtime Policy Enforcement & Bounded Fallback
+        # 5. Module 6 & 7 — Runtime Policy Enforcement & Bounded Gateway Execution Loop
         if runtime_policy_context is None:
             runtime_policy_context = RuntimePolicyContext(
                 require_available_credentials=False,
@@ -115,24 +115,61 @@ class PipelineRouter:
                 max_fallback_attempts=10
             )
 
-        policy_decision = self.policy_engine.evaluate(
-            ranking_result=ranking_result,
-            context=runtime_policy_context,
-            usage_state=usage_state
-        )
+        while True:
+            policy_decision = self.policy_engine.evaluate(
+                ranking_result=ranking_result,
+                context=runtime_policy_context,
+                usage_state=usage_state
+            )
 
-        # 6. Module 7 — Gateway Provider Execution
-        gateway_request = GatewayRequest(
-            request_id=request_id,
-            prompt=prompt,
-            policy_decision=policy_decision,
-            simulation_options=simulation_options,
-            metadata={
-                "complexity_profile": complexity_profile,
-                "feasible_candidate_count": capability_match.eligible_count,
-                "allowed_candidate_count": rule_eval.allowed_count,
-                "ranked_candidate_count": ranking_result.total_candidates,
-            }
-        )
+            # Module 7 — Gateway Provider Execution
+            gateway_request = GatewayRequest(
+                request_id=request_id,
+                prompt=prompt,
+                policy_decision=policy_decision,
+                simulation_options=simulation_options,
+                metadata={
+                    "complexity_profile": complexity_profile,
+                    "feasible_candidate_count": capability_match.eligible_count,
+                    "allowed_candidate_count": rule_eval.allowed_count,
+                    "ranked_candidate_count": ranking_result.total_candidates,
+                }
+            )
 
-        return self.gateway.execute(gateway_request)
+            response = self.gateway.execute(gateway_request)
+
+            # If no model was selected, Gateway returns NO_CANDIDATE/REJECTED
+            if not policy_decision.selected_model:
+                return response
+
+            # Check if this failure warrants cross-provider fallback
+            from .models import ExecutionStatus
+            should_fallback = False
+            
+            if response.status in (
+                ExecutionStatus.TIMEOUT,
+                ExecutionStatus.RETRY_EXHAUSTED,
+                ExecutionStatus.ADAPTER_NOT_FOUND
+            ):
+                should_fallback = True
+            elif response.status == ExecutionStatus.FAILED:
+                msg = (response.error_message or "").lower()
+                # Do NOT fallback on obvious client-side content/request errors
+                if "400" in msg or "bad request" in msg or "invalid format" in msg:
+                    should_fallback = False
+                else:
+                    should_fallback = True
+
+            if should_fallback and runtime_policy_context.fallback_enabled:
+                failed_model_id = policy_decision.selected_model.model_id
+                
+                # Exclude the failed model for THIS request only, preserving original ranking order
+                ranking_result.ranked_candidates = [
+                    c for c in ranking_result.ranked_candidates 
+                    if c.model_id != failed_model_id
+                ]
+                
+                if ranking_result.ranked_candidates:
+                    continue  # Loop to evaluate the next best candidate
+                
+            return response
